@@ -7,9 +7,9 @@ on:
             - 'feature/*'
 
 env:
-  MONGO_URI: 'mongodb://${{ secrets.USERNAME}}:${{ vars.PASSWORD }}@cluster0.7x6u1mv.mongodb.net/superData'
-  MONGO_USERNAME: ${{ vars.PASSWORD }}
-  MONGO_PASSWORD: ${{ secrets.USERNAME}}
+  MONGO_URI: 'mongodb://${{ secrets.USERNAME}}:${{ secrets.PASSWORD }}@cluster0.7x6u1mv.mongodb.net/superData'
+  MONGO_USERNAME: ${{ secrets.USERNAME }}
+  MONGO_PASSWORD: ${{ secrets.PASSWORD}}
 jobs:
     unit-testing:
         name: Unit Testing
@@ -55,7 +55,7 @@ jobs:
                 name: Mocha-Test-Resalt
                 path: test-Resalt.xml
 
-                
+
     code-coverage:
         name: Code Coverage
         runs-on: ubuntu-latest
