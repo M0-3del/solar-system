@@ -11,6 +11,9 @@ jobs:
     permissions: # Permissions are crucial for GITHUB_TOKEN to have rights
       issues: write # Allows the action to write to issues (e.g., add labels)
     steps:
+              # Checkout is not strictly needed if you're only interacting with event data
+      - name: Checkout Repo
+        uses: actions/checkout@v4
       - name: Check Title and Add 'bug' Label
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
