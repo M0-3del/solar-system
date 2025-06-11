@@ -18,9 +18,9 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           ISSUE_NUMBER: ${{ github.event.issue.number }}
-          REPO: ${{ github.repository }} # e.g., your-username/your-repo-name
+          REPO: ${{ github.repository }}
+          issue_title: "${{ github.event.issue.title }}" # e.g., your-username/your-repo-name
         run: |
-          issue_title="${{ github.event.issue.title }}"
           echo "Processing issue: #${ISSUE_NUMBER} - ${issue_title}"
           echo "Repository: ${REPO}"
 
