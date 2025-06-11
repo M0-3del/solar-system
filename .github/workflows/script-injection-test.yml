@@ -1,25 +1,30 @@
-name: Lablel Issues (Secript Injection)
+name: Label Bug Issues
 
 on:
-  issues: 
-    types: 
+  issues:
+    types:
       - opened
-        
-jobs:
-    assign-lable:
-       runs-on: ubuntu-latest
-       steps:
-        - name: Checkout Repo
-          uses:  actions/checkout@v4
 
-        - name: Add a Lable
-          env: 
-            AWS_SECRT_ACCESS_KEY: ${{ secrets.GITHUB_TOKEN }}
-          run: |
-           issue_title="${{ github.event.issue.title }}"
-           if [[ "$issue_title"== *"bug"* ]]; then
-            echo " Issue is about a bug !"
-            echo " Assigning Lable - BUG ......... ....... ......"
-           else 
-            echo " Not a bug "
-           fi    
+jobs:
+  label-bug-issue:
+    runs-on: ubuntu-latest
+    permissions: # Permissions are crucial for GITHUB_TOKEN to have rights
+      issues: write # Allows the action to write to issues (e.g., add labels)
+    steps:
+      - name: Check Title and Add 'bug' Label
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+          REPO: ${{ github.repository }} # e.g., your-username/your-repo-name
+        run: |
+          issue_title="${{ github.event.issue.title }}"
+          echo "Processing issue: #${ISSUE_NUMBER} - ${issue_title}"
+          echo "Repository: ${REPO}"
+
+          if [[ "${issue_title,,}" == *bug* ]]; then
+            echo "Issue title contains 'bug'. Assigning 'bug' label..."
+            gh issue edit "${ISSUE_NUMBER}" --add-label "bug" --repo "${REPO}"
+            echo "Label 'bug' assigned."
+          else
+            echo "Issue title does not contain 'bug'. No label assigned by this rule."
+          fi
