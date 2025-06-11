@@ -1,0 +1,24 @@
+name: Lablel Issues (Secript Injection)
+on:
+    issues: 
+        types: 
+            - opened
+        
+jobs:
+    assign-lable:
+       runs-on: ubuntu-latest
+       steps:
+        - name: Checkout Repo
+          uses:  actions/checkout@v4
+
+        - name: Add a Lable
+          env: 
+            AWS_SECRT_ACCESS_KEY: ${{ secrets.GITHUB_TOKEN }}
+          run: |
+           issue_title="${{ github.event.issue.title }}"
+           if [[ "$issue_title"== *"bug"* ]]; then
+            echo " Issue is about a bug !"
+            echo " Assigning Lable - BUG ......... ....... ......"
+           else 
+            echo " Not a bug "
+           fi    
