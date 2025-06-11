@@ -97,6 +97,41 @@ jobs:
                 path: Covrerage
                 retention-days: 5
 
+    report-s3:
+      needs: [unit-testing, code-coverage]
+      name: AWS S3 -upload Reports
+      runs-on: ubuntu-latest
+      continue-on-error: true
+      steps:
+        - name: Dowenload Mocha Test Artifact
+          uses: actions/download-artifact@v4
+          with:
+            name: Mocha-Test-Result
+
+        - name: Dowenload Mocha Coverage Artifact
+          uses: actions/download-artifact@v4
+          with:
+            name: Mocha-Coverage-Result
+
+        - name: Merge Test files
+          run: |
+           ls -ltr
+           mkdir reports-${{ github.sha }}
+           mv cobertura-coverage.xml reports-${{ github.sha }}/
+           mv test-results.xml reports-${{ github.sha }}/
+           ls -ltr reports-${{ github.sha }}/
+
+        - name: Upload to AWS S3
+          uses: jakejarvis/s3-sync-action@master
+          with:
+             args: --acl public-read --follow-symlinks --delete
+          env:
+             AWS_S3_BUCKET: ${{ secrets.AWS_S3_BUCKET }}  # name bucket
+             AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+             AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+             AWS_REGION: 'us-west-1'   # optional: defaults to us-east-1
+             SOURCE_DIR: 'reports-${{ github.sha }}'
+             DEST_DIR: 'reports-${{ github.sha }}'
     docker:
       name: Containerization
       needs: [unit-testing, code-coverage]
@@ -201,4 +236,42 @@ jobs:
            echo $URL
            echo "-------------------------"
            curl https://$URL/live -s -k | jq -r .status | grep -i live
+  
+    notify:
+     if: always()
+     name: Notification
+     needs: [dev-integration-testing, prod-integration-testing]
+     continue-on-error: true
+     runs-on: ubuntu-latest
 
+     steps:
+      - name: Slack Notification
+        uses: rtCamp/action-slack-notify@v2
+        env:
+          SLACK_CHANNEL: general
+          SLACK_COLOR: ${{ job.status }} # or a specific color like 'good' or '#ff00ff'
+          SLACK_ICON: https://github.com/rtCamp.png?size=48
+          SLACK_MESSAGE: 'Post Content :rocket:'
+          SLACK_TITLE: Post Title
+          SLACK_USERNAME: rtCamp
+          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
+
+      - name: Run Actions Telegram Notify
+        uses: proDreams/actions-telegram-notifier@main
+        with:
+          token: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          chat_id: ${{ secrets.TELEGRAM_CHAT_ID }}
+          status: ${{ job.status }}
+          notify_fields: "actor,repository,workflow,branch,commit"
+          message: "Test message."
+          footer: "Test footer"
+      
+      - name: Send Discord notification
+        uses: stegzilla/discord-notify@v2
+        with:
+          webhook_url: ${{ secrets.DESCORD_BOT_TOKEN }}
+          title: New PR opened
+          message: "**${{ github.event.pull_request.title }}**\n**Creator:** ${{ github.event.pull_request.user.login }}\n${{ github.event.pull_request.html_url }}"
+          include_image: true
+          avatar_url: https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png
+          username: GitHub PR Notifier
