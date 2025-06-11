@@ -1,8 +1,9 @@
 name: Lablel Issues (Secript Injection)
+
 on:
-    issues: 
-        types: 
-            - opened
+  issues: 
+    types: 
+      - opened
         
 jobs:
     assign-lable:
