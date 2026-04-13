@@ -21,9 +21,10 @@ jobs:
         run: sudo tailscale set --accept-routes=true
 
       - name: Write kubeconfig
+        shell: bash
         run: |
           mkdir -p ~/.kube
-          echo "${{ secrets.KUBECONFIG }}" | base64 -d > ~/.kube/config
+          printf '%s' '${{ secrets.KUBECONFIG }}' | tr -d '\r\n ' | base64 -d > ~/.kube/config
           chmod 600 ~/.kube/config
 
       - name: Test cluster access
